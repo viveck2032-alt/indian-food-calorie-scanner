@@ -1,0 +1,7 @@
+{
+  "name": "ZaikaScan AI",
+  "description": "Instant calorie estimation for Indian cuisine using AI vision.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
