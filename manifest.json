@@ -1,4 +1,5 @@
 {
+  "id": "currycal-v1",
   "short_name": "CurryCal",
   "name": "CurryCal AI Food Scanner",
   "icons": [
@@ -14,6 +15,7 @@
     }
   ],
   "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "theme_color": "#FFF7ED",
   "background_color": "#FFF7ED",

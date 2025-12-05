@@ -10,9 +10,10 @@ if (!rootElement) {
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
+    // Register SW with explicit scope '.' to handle preview URLs like /preview/
+    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
       .then((registration) => {
-        console.log('SW registered: ', registration);
+        console.log('SW registered with scope: ', registration.scope);
       })
       .catch((registrationError) => {
         console.log('SW registration failed: ', registrationError);

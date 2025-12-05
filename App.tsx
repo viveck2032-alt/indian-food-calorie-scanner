@@ -18,6 +18,8 @@ const App: React.FC = () => {
   
   // PWA Install State
   const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,6 +32,11 @@ const App: React.FC = () => {
       }
     } catch (e) {
       console.error("Failed to load history", e);
+    }
+
+    // Check if running in standalone mode (already installed)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsStandalone(true);
     }
 
     // Capture the install prompt
@@ -46,13 +53,16 @@ const App: React.FC = () => {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!installPrompt) return;
-    
-    installPrompt.prompt();
-    
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setInstallPrompt(null);
+    // If native prompt is available, use it
+    if (installPrompt) {
+      installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setInstallPrompt(null);
+      }
+    } else {
+      // Otherwise, show manual instructions (common in preview environments)
+      setShowInstallHelp(true);
     }
   };
 
@@ -151,15 +161,25 @@ const App: React.FC = () => {
         </div>
         
         <div className="flex gap-2">
-            {installPrompt && (
+            {/* Install Button: Show if NOT standalone (web browser) */}
+            {!isStandalone && (
                 <button
                     onClick={handleInstallClick}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-900 text-white hover:bg-black rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-md animate-pulse"
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-900 text-white hover:bg-black rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-md"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    Install App
+                    Install
                 </button>
             )}
+
+            {/* Help Button (for explicit help access) */}
+            <button
+                onClick={() => setShowInstallHelp(true)}
+                className="p-2 bg-white/60 hover:bg-white backdrop-blur rounded-full text-gray-600 hover:text-orange-600 transition-all shadow-sm border border-white"
+                aria-label="Installation Help"
+            >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </button>
 
             {appState !== AppState.HISTORY && (
                 <button 
@@ -293,6 +313,51 @@ const App: React.FC = () => {
           )}
         </div>
       </main>
+
+      {/* Install Help Modal */}
+      {showInstallHelp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl relative">
+                <button 
+                    onClick={() => setShowInstallHelp(false)}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                
+                <h3 className="text-xl font-bold text-gray-900 mb-4">How to Install</h3>
+                
+                <div className="space-y-4 text-sm text-gray-600">
+                    <div className="bg-orange-50 p-3 rounded-xl border border-orange-100">
+                        <p className="font-bold text-orange-800 mb-1">Issue Installing?</p>
+                        <p>If you don't see the automatic prompt, use the manual method below.</p>
+                    </div>
+
+                    <div>
+                        <p className="font-bold text-gray-900">Chrome (Desktop)</p>
+                        <p>Click the <span className="font-bold">⋮</span> menu or the <span className="font-bold">Install Icon</span> in the address bar &rarr; Select <span className="font-bold">Install CurryCal</span>.</p>
+                    </div>
+
+                    <div>
+                        <p className="font-bold text-gray-900">Android (Chrome)</p>
+                        <p>Tap <span className="font-bold">⋮</span> (Menu) &rarr; <span className="font-bold">Install App</span> or <span className="font-bold">Add to Home screen</span>.</p>
+                    </div>
+
+                    <div>
+                        <p className="font-bold text-gray-900">iOS (Safari)</p>
+                        <p>Tap <span className="font-bold">Share</span> button &rarr; Scroll down &rarr; <span className="font-bold">Add to Home Screen</span>.</p>
+                    </div>
+                </div>
+                
+                <button 
+                    onClick={() => setShowInstallHelp(false)}
+                    className="w-full mt-6 py-3 bg-gray-900 text-white font-bold rounded-xl"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+      )}
 
       {/* Footer Decoration */}
       <div className="fixed bottom-0 left-0 w-full overflow-hidden -z-10 pointer-events-none opacity-20">
